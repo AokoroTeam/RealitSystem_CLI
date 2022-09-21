@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.CommandLine;
+
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,9 +16,10 @@ namespace RealitSystem_CLI.Sources.Commands
         [Option('p', "path", Required = true)]
         public string? BuildPath { get; set; }
 
-        public void Execute()
+
+        public void Build()
         {
-            Console.WriteLine($"Building at {BuildPath}");
+            Console.WriteLine($"Current path is {Directory.GetCurrentDirectory()} and parameter is {BuildPath}");
         }
     }
 }
