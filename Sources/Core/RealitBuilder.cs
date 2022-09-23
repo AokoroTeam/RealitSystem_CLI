@@ -4,7 +4,7 @@ using System.Text.Json;
 using CommandLine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RealitSystem_CLI.Sources.Commands;
+using RealitSystem_CLI.Commands;
 
 namespace RealitSystem_CLI
 {
@@ -15,11 +15,17 @@ namespace RealitSystem_CLI
 
         [JsonProperty]
         public string? ModelPath { get; set; }
-        
+
+        [JsonProperty]
+        public string[] Appertures { get; set; }
+
+
         [JsonProperty]
         public Vector3 PlayerPosition { get; set; }
         [JsonProperty]
         public Vector3 PlayerRotation { get; set; }
+
+        public bool Dirty { get; internal set; }
 
         private static RealitBuilder? current;
 
@@ -28,31 +34,28 @@ namespace RealitSystem_CLI
             this._Path = path;
         }
 
-        public static async Task<RealitBuilder> Current()
+        public static RealitBuilder Current => GetCurrent();
+
+
+        private static RealitBuilder GetCurrent()
         {
-            if(current == null)
+            if (current == null)
             {
-                string currentPath = Directory.GetCurrentDirectory();
-                string realitBuilderFile = Path.Combine(currentPath, ".rltb");
-                current = new RealitBuilder(realitBuilderFile);
-                
-                if(File.Exists(realitBuilderFile))
+                string filePath = GetFilePath();
+                current = new RealitBuilder(filePath);
+
+                if (File.Exists(filePath))
                 {
-                    using(FileStream fileStream = new FileStream(realitBuilderFile, FileMode.Open))
-                    using(StreamReader streamReader = new StreamReader(fileStream))
-                    using(JsonReader reader = new JsonTextReader(streamReader))
-                    {
-                        string? value = await reader.ReadAsStringAsync();
-                        
-                        if(value != null)
-                            JsonConvert.PopulateObject(value, current);
-                    }
+                    string? value = File.ReadAllText(filePath);
+                    if (value != null)
+                        current = JsonConvert.DeserializeObject<RealitBuilder>(value);
+
                 }
                 else
                 {
                     try
                     {
-                        using (new FileStream(realitBuilderFile, FileMode.CreateNew)) {}
+                        using (new FileStream(filePath, FileMode.CreateNew)){}
                     }
                     catch
                     {
@@ -64,5 +67,50 @@ namespace RealitSystem_CLI
 
             return current;
         }
+
+        private static string GetFilePath()
+        {
+            string currentPath = Directory.GetCurrentDirectory();
+            string realitBuilderFile = Path.Combine(currentPath, ".rltb");
+            return realitBuilderFile;
+        }
+
+        public async Task<RealitReturnCode> Apply()
+        {
+            try
+            {
+                if (Dirty)
+                {
+                    string path = GetFilePath();
+                    string content = JsonConvert.SerializeObject(this);
+                    await File.WriteAllTextAsync(path, content);
+                }
+
+                return new RealitReturnCode(ReturnStatus.Success);
+            }
+            catch(Exception e)
+            {
+                return new RealitReturnCode(ReturnStatus.Failure, e.Message);
+            }
+        }
+
+
+        internal List<string> GetMissingSettings()
+        {
+            List<string> settings = new List<string>();
+            
+            if(PlayerPosition == null)
+                settings.Add("player-pos");
+            
+            if (PlayerRotation == null)
+                settings.Add("player-rot");
+
+            if (ModelPath == null)
+                settings.Add("model-path");
+
+            return settings;
+
+        }
+
     }
 }

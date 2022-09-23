@@ -8,18 +8,26 @@ using System.Threading.Tasks;
 
 using CommandLine;
 
-namespace RealitSystem_CLI.Sources.Commands
+namespace RealitSystem_CLI.Commands
 {
-    [Verb("Build", HelpText = "Generate a .rsz file")]
+    [Verb("build", HelpText = "Generate a .rsz file")]
     internal class BuildCommand
     {
         [Option('p', "path", Required = true)]
         public string? BuildPath { get; set; }
 
 
-        public void Build()
+        public RealitReturnCode Build()
         {
-            Console.WriteLine($"Current path is {Directory.GetCurrentDirectory()} and parameter is {BuildPath}");
+            var missingSettings = RealitBuilder.Current.GetMissingSettings();
+            if(missingSettings.Count > 0)
+            {
+                string missings = string.Join("\n", missingSettings);
+
+                return new RealitReturnCode(ReturnStatus.Failure, $"Cannot build the scene because this settings are missing : \n {missings}");
+            }
+
+            return new RealitReturnCode(ReturnStatus.Success);
         }
     }
 }

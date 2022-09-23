@@ -1,25 +1,39 @@
 ﻿using System.CommandLine;
 using System.Text.Json;
 using CommandLine;
-using RealitSystem_CLI.Sources.Commands;
+using RealitSystem_CLI.Commands;
 
 namespace RealitSystem_CLI
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            int result = CommandLine.Parser.Default.ParseArguments<BuildCommand, bool>(args)
-            .MapResult(
-                (BuildCommand buildCommand) => Build(buildCommand),
-                errs => 1);
+            RealitReturnCode returnCode = CommandLine.Parser.Default.ParseArguments<
+                BuildCommand, 
+                SceneCommands, 
+                RealitReturnCode>
+            (args).MapResult(
+                (BuildCommand buildCommand) => buildCommand.Build(),
+                (SceneCommands sceneCommands) => sceneCommands.Apply(),
+                errs => new RealitReturnCode(ReturnStatus.Failure));
 
-        }
 
-        private static int Build(BuildCommand build)
-        {
-            build.Build();
-            return 1;
+            if(returnCode.returnStatus == ReturnStatus.Success)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(returnCode.message);
+                Console.ForegroundColor = ConsoleColor.White;
+
+                await RealitBuilder.Current.Apply();
+                //Apply
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(returnCode.message);
+                Console.ForegroundColor = ConsoleColor.White;
+            }
         }
     }
 }
