@@ -11,6 +11,7 @@ namespace RealitSystem_CLI
     [JsonObject(MemberSerialization.OptIn)]
     public class RealitBuilder
     {
+        public Settings settings;
         public readonly string _Path;
 
         [JsonProperty]
@@ -28,45 +29,37 @@ namespace RealitSystem_CLI
         public bool Dirty { get; internal set; }
 
         private static RealitBuilder? current;
+        public static RealitBuilder? Current => current;
 
-        public RealitBuilder(string path)
+
+        public RealitBuilder(Settings settings)
         {
-            this._Path = path;
-        }
+            this.settings = settings;
+            _Path = GetFilePath();
 
-        public static RealitBuilder Current => GetCurrent();
-
-
-        private static RealitBuilder GetCurrent()
-        {
-            if (current == null)
+            if (File.Exists(_Path))
             {
-                string filePath = GetFilePath();
-                current = new RealitBuilder(filePath);
+                string? value = File.ReadAllText(_Path);
+                if (value != null)
+                    current = JsonConvert.DeserializeObject<RealitBuilder>(value);
 
-                if (File.Exists(filePath))
+            }
+            else
+            {
+                try
                 {
-                    string? value = File.ReadAllText(filePath);
-                    if (value != null)
-                        current = JsonConvert.DeserializeObject<RealitBuilder>(value);
-
+                    using (new FileStream(_Path, FileMode.CreateNew)) { }
                 }
-                else
+                catch
                 {
-                    try
-                    {
-                        using (new FileStream(filePath, FileMode.CreateNew)){}
-                    }
-                    catch
-                    {
-                        //TODO
-                        throw;
-                    }
+                    //TODO
+                    throw;
                 }
             }
-
-            return current;
+            current = this;
         }
+
+
 
         private static string GetFilePath()
         {
@@ -88,20 +81,20 @@ namespace RealitSystem_CLI
 
                 return new RealitReturnCode(ReturnStatus.Success);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return new RealitReturnCode(ReturnStatus.Failure, e.Message);
             }
         }
 
 
-        internal List<string> GetMissingSettings()
+        internal List<string> GetMissingData()
         {
             List<string> settings = new List<string>();
-            
-            if(PlayerPosition == null)
+
+            if (PlayerPosition == null)
                 settings.Add("player-pos");
-            
+
             if (PlayerRotation == null)
                 settings.Add("player-rot");
 
