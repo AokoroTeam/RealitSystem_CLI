@@ -20,10 +20,12 @@ namespace RealitSystem_CLI.Commands
             {
                 if (Vector3.TrySerialize(value, out Vector3 vector3))
                 {
-                    AddModification(() => {
-                            RealitBuilder.Current.PlayerPosition = vector3;
-                            RealitBuilder.Current.Dirty = true;
-                        });
+                    AddModification(() =>
+                    {
+                        RealitBuilderData data = RealitBuilder.Instance.Data;
+                        data.PlayerPosition = vector3;
+                        data.Dirty = true;
+                    });
                 }
                 else
                 {
@@ -41,8 +43,9 @@ namespace RealitSystem_CLI.Commands
                 {
                     AddModification(() =>
                         {
-                            RealitBuilder.Current.PlayerRotation = vector3;
-                            RealitBuilder.Current.Dirty = true;
+                            RealitBuilderData data = RealitBuilder.Instance.Data;
+                            data.PlayerRotation = vector3;
+                            data.Dirty = true;
                         });
                 }
                 else
@@ -61,8 +64,9 @@ namespace RealitSystem_CLI.Commands
                 {
                     AddModification(() =>
                         {
-                            RealitBuilder.Current.ModelPath = value;
-                            RealitBuilder.Current.Dirty = true;
+                            RealitBuilderData data = RealitBuilder.Instance.Data;
+                            data.ModelPath = value;
+                            data.Dirty = true;
                         });
                 }
                 else
@@ -72,7 +76,7 @@ namespace RealitSystem_CLI.Commands
             }
         }
 
-        [Option("model-appertures",
+        [Option("submeshesToApperture",
         Separator = '|', 
         Required = false, 
         HelpText = "Define apperture with path and submesh index. Example : ObjectA/ObjectB.2|ObjectA/ObjectC.1")]
@@ -82,10 +86,12 @@ namespace RealitSystem_CLI.Commands
             {
                 AddModification(() =>
                 {
-                    RealitBuilder.Current.Appertures = value.ToArray();
-                    RealitBuilder.Current.Dirty = true;
+                    RealitBuilderData data = RealitBuilder.Instance.Data;
+                    data.Appertures = value.ToArray();
+                    data.Dirty = true;
                 });
             }
         }
+        
     }
 }

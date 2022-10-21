@@ -1,5 +1,6 @@
 
 using System.CommandLine;
+using System.Reflection;
 using System.Text.Json;
 using CommandLine;
 using Newtonsoft.Json;
@@ -8,102 +9,39 @@ using RealitSystem_CLI.Commands;
 
 namespace RealitSystem_CLI
 {
-    [JsonObject(MemberSerialization.OptIn)]
     public class RealitBuilder
     {
-        public Settings settings;
-        public readonly string _Path;
-
-        [JsonProperty]
-        public string? ModelPath { get; set; }
-
-        [JsonProperty]
-        public string[] Appertures { get; set; }
-
-
-        [JsonProperty]
-        public Vector3 PlayerPosition { get; set; }
-        [JsonProperty]
-        public Vector3 PlayerRotation { get; set; }
-
-        public bool Dirty { get; internal set; }
-
-        private static RealitBuilder? current;
-        public static RealitBuilder? Current => current;
-
+        public static RealitBuilder Instance;
+        public RealitBuilderData Data;
+        public readonly string rltbPath;
+        public readonly string enginePath;
 
         public RealitBuilder(Settings settings)
         {
-            this.settings = settings;
-            _Path = GetFilePath();
+            rltbPath = RealitBuilderData.GetTargetedPath();
+            Data = RealitBuilderData.GetRltbAtPath(rltbPath);
 
-            if (File.Exists(_Path))
-            {
-                string? value = File.ReadAllText(_Path);
-                if (value != null)
-                    current = JsonConvert.DeserializeObject<RealitBuilder>(value);
+            string assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            }
-            else
-            {
-                try
-                {
-                    using (new FileStream(_Path, FileMode.CreateNew)) { }
-                }
-                catch
-                {
-                    //TODO
-                    throw;
-                }
-            }
-            current = this;
+            enginePath = Path.Combine(assemblyPath, "Engine/RealitSystem.exe");
+
+            Instance = this;
         }
-
-
-
-        private static string GetFilePath()
-        {
-            string currentPath = Directory.GetCurrentDirectory();
-            string realitBuilderFile = Path.Combine(currentPath, ".rltb");
-            return realitBuilderFile;
-        }
-
-        public async Task<RealitReturnCode> Apply()
-        {
-            try
-            {
-                if (Dirty)
-                {
-                    string path = GetFilePath();
-                    string content = JsonConvert.SerializeObject(this);
-                    await File.WriteAllTextAsync(path, content);
-                }
-
-                return new RealitReturnCode(ReturnStatus.Success);
-            }
-            catch (Exception e)
-            {
-                return new RealitReturnCode(ReturnStatus.Failure, e.Message);
-            }
-        }
-
 
         internal List<string> GetMissingData()
         {
-            List<string> settings = new List<string>();
+            List<string> missing = new List<string>();
 
-            if (PlayerPosition == null)
-                settings.Add("player-pos");
+            if (Data.PlayerPosition == null)
+                missing.Add("player-pos");
 
-            if (PlayerRotation == null)
-                settings.Add("player-rot");
+            if (Data.PlayerRotation == null)
+                missing.Add("player-rot");
 
-            if (ModelPath == null)
-                settings.Add("model-path");
-
-            return settings;
-
+            if (Data.ModelPath == null)
+                missing.Add("model-path");
+                
+            return missing;
         }
-
     }
 }

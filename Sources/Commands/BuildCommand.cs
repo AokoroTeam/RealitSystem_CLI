@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
-
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using RealitSystem_CLI.Communication;
 using CommandLine;
 
 namespace RealitSystem_CLI.Commands
@@ -14,35 +15,79 @@ namespace RealitSystem_CLI.Commands
     internal class BuildCommand
     {
         [Option('p', "path", Required = true)]
-        public string? BuildPath { get; set; }
+        public string? output { get; set; }
+        
+        [Option('m', "miao")]
+        public string miao { get; set; }
 
 
         public RealitReturnCode Build()
         {
-            RealitBuilder? current = RealitBuilder.Current;
-            var missingSettings = current.GetMissingData();
+            RealitBuilder realitBuilder = RealitBuilder.Instance;
+            RealitBuilderData? data = realitBuilder.Data;
+            var missingSettings = data.GetMissingData();
+            System.Diagnostics.Stopwatch watch = new();
+
             if (missingSettings.Count > 0)
             {
                 string missings = string.Join("\n", missingSettings);
 
                 return new RealitReturnCode(ReturnStatus.Failure, $"Cannot build the scene because this settings are missing : \n {missings}");
             }
-
-            string enginePath = current.settings.EnginePath;
-            using (System.Diagnostics.Process pProcess = new System.Diagnostics.Process())
+            List<string> arguments = new List<string>()
             {
-                pProcess.StartInfo.FileName = enginePath;
-                pProcess.StartInfo.Arguments = current._Path; //argument
-                pProcess.StartInfo.UseShellExecute = false;
-                pProcess.StartInfo.RedirectStandardOutput = true;
-                pProcess.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                pProcess.StartInfo.CreateNoWindow = true;
+                $"-rltb {realitBuilder.rltbPath}",
+                $"-output {output}",
+                $"-batchmode"
+            };
+            
+            if(!string.IsNullOrEmpty(miao))
+                arguments.Add($"-miao {miao}");
+
+            string enginePath = realitBuilder.enginePath;
+            Console.WriteLine($"Lauching at {enginePath}");
+            string joinedArgs = string.Join(' ', arguments);
+            Console.WriteLine($"Arguments are {joinedArgs}");
+
+            using (Process pProcess = new Process())
+            {   
+                RealitPipeServer realitPipe = new RealitPipeServer();
+                ProcessStartInfo startInfo = new ProcessStartInfo()
+                {
+                    UseShellExecute = false,
+                    FileName = enginePath,
+                    Arguments = joinedArgs,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                };
+                pProcess.StartInfo = startInfo;
+                Program.OnCancel += pProcess.Kill;
+                Program.OnCancel += realitPipe.Close;
+                
                 pProcess.Start();
-                string output = pProcess.StandardOutput.ReadToEnd(); //The output result
+                realitPipe.Start();
+
                 pProcess.WaitForExit();
+
+                Program.OnCancel -= realitPipe.Close;
+                Program.OnCancel -= pProcess.Kill;
+
+                realitPipe.Close();
+                
                 int code = pProcess.ExitCode;
+
+                if (code == 1)
+                {
+
+                    Console.WriteLine($"Successfuly generated");
+                    return new RealitReturnCode(ReturnStatus.Success);
+                }
+                else
+                    Console.WriteLine($"Generation failed");
             }
-            return new RealitReturnCode(ReturnStatus.Success);
+            
+            return new RealitReturnCode(ReturnStatus.Failure);
         }
     }
 }
