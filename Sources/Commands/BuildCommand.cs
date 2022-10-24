@@ -17,7 +17,7 @@ namespace RealitSystem_CLI.Commands
         [Option('p', "path", Required = true)]
         public string? output { get; set; }
         
-        [Option('m', "miao")]
+        [Option("miao")]
         public string miao { get; set; }
 
 
@@ -36,13 +36,13 @@ namespace RealitSystem_CLI.Commands
             }
             List<string> arguments = new List<string>()
             {
-                $"-rltb {realitBuilder.rltbPath}",
-                $"-output {output}",
+                $"-rltb '{realitBuilder.rltbPath}'",
+                $"-output '{output}'",
                 $"-batchmode"
             };
             
             if(!string.IsNullOrEmpty(miao))
-                arguments.Add($"-miao {miao}");
+                arguments.Add($"-miao '{miao}'");
 
             string enginePath = realitBuilder.enginePath;
             Console.WriteLine($"Lauching at {enginePath}");

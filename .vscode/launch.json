@@ -11,7 +11,11 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/RealitSystem_CLI.dll",
-            "args": [],
+            "args": [
+                "build",
+                "-p 'C:\\RealitSystem\\Tests'",
+                "-miao 'C:\\Users\\lupen\\Downloads\\visite_immersive-main\\P224\\COLLADA\\proj.dae'"
+            ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

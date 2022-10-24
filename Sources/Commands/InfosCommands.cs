@@ -16,7 +16,8 @@ namespace RealitSystem_CLI.Commands
     {
         public RealitReturnCode GetInfos()
         {
-            Console.WriteLine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Console.WriteLine("Aller aller");
             return new RealitReturnCode(ReturnStatus.Success);
         }
     }

@@ -18,13 +18,19 @@ namespace RealitSystem_CLI.Communication
         public string ReadString()
         {
             int len = 0;
+            try
+            {
+                len = ioStream.ReadByte() * 256;
+                len += ioStream.ReadByte();
+                byte[] inBuffer = new byte[len];
+                ioStream.Read(inBuffer, 0, len);
 
-            len = ioStream.ReadByte() * 256;
-            len += ioStream.ReadByte();
-            byte[] inBuffer = new byte[len];
-            ioStream.Read(inBuffer, 0, len);
-
-            return streamEncoding.GetString(inBuffer);
+                return streamEncoding.GetString(inBuffer);
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         public int WriteString(string outString)
