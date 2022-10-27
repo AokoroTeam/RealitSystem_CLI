@@ -16,7 +16,7 @@ namespace RealitSystem_CLI.Commands
     {
         [Option('p', "path", Required = true)]
         public string? output { get; set; }
-        
+
         [Option("miao")]
         public string miao { get; set; }
 
@@ -36,12 +36,12 @@ namespace RealitSystem_CLI.Commands
             }
             List<string> arguments = new List<string>()
             {
-                $"-rltb '{realitBuilder.rltbPath}'",
-                $"-output '{output}'",
+                $"-rltb {realitBuilder.rltbPath}",
+                $"-output {output}",
                 $"-batchmode"
             };
-            
-            if(!string.IsNullOrEmpty(miao))
+
+            if (!string.IsNullOrEmpty(miao))
                 arguments.Add($"-miao '{miao}'");
 
             string enginePath = realitBuilder.enginePath;
@@ -50,7 +50,7 @@ namespace RealitSystem_CLI.Commands
             Console.WriteLine($"Arguments are {joinedArgs}");
 
             using (Process pProcess = new Process())
-            {   
+            {
                 RealitPipeServer realitPipe = new RealitPipeServer();
                 ProcessStartInfo startInfo = new ProcessStartInfo()
                 {
@@ -64,7 +64,7 @@ namespace RealitSystem_CLI.Commands
                 pProcess.StartInfo = startInfo;
                 Program.OnCancel += pProcess.Kill;
                 Program.OnCancel += realitPipe.Close;
-                
+
                 pProcess.Start();
                 realitPipe.Start();
 
@@ -74,7 +74,7 @@ namespace RealitSystem_CLI.Commands
                 Program.OnCancel -= pProcess.Kill;
 
                 realitPipe.Close();
-                
+
                 int code = pProcess.ExitCode;
 
                 if (code == 1)
@@ -86,7 +86,7 @@ namespace RealitSystem_CLI.Commands
                 else
                     Console.WriteLine($"Generation failed");
             }
-            
+
             return new RealitReturnCode(ReturnStatus.Failure);
         }
     }
