@@ -19,10 +19,10 @@ namespace RealitSystem_CLI
         public Vector3 PlayerPosition { get; set; }
         [JsonProperty]
         public Vector3 PlayerRotation { get; set; }
+        [JsonProperty]
+        public string ProjectName { get; internal set; }
 
         public bool Dirty { get; internal set; }
-
-
         public async Task<RealitReturnCode> Apply()
         {
             try
@@ -45,6 +45,8 @@ namespace RealitSystem_CLI
         internal List<string> GetMissingData()
         {
             List<string> missing = new List<string>();
+            if (string.IsNullOrEmpty(ProjectName))
+                missing.Add("project-name");
 
             if (PlayerPosition == null)
                 missing.Add("player-pos");

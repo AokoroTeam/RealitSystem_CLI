@@ -23,7 +23,7 @@ namespace RealitSystem_CLI
 
             string assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            enginePath = Path.Combine(assemblyPath, "Engine/RealitSystem.exe");
+            enginePath = Path.Combine(assemblyPath, "Engine/MiaoXRealit.exe");
 
             Instance = this;
         }

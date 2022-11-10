@@ -7,8 +7,7 @@
       <PackAsTool>true</PackAsTool>
       <ToolCommandName>realit</ToolCommandName>
       <PackageOutputPath>./nupkg</PackageOutputPath>
-      <VersionPrefix>1.1.0</VersionPrefix>
-      <VersionSuffix>alpha</VersionSuffix>
+      <VersionPrefix>1.2</VersionPrefix>
     </PropertyGroup>
     <ItemGroup>
 		    <PackageReference Include="CommandLineParser" Version="2.9.1" />

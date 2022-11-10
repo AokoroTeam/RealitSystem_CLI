@@ -19,7 +19,9 @@ namespace RealitSystem_CLI.Commands
 
         [Option("miao")]
         public string miao { get; set; }
-
+        
+        [Option("embed")]
+        public bool embed { get; set; }
 
         public RealitReturnCode Build()
         {
@@ -42,12 +44,13 @@ namespace RealitSystem_CLI.Commands
             };
 
             if (!string.IsNullOrEmpty(miao))
-                arguments.Add($"-miao '{miao}'");
+                arguments.Add($"-miao {miao}");
+
+            if(embed)
+                    arguments.Add("-embed");
 
             string enginePath = realitBuilder.enginePath;
-            Console.WriteLine($"Lauching at {enginePath}");
             string joinedArgs = string.Join(' ', arguments);
-            Console.WriteLine($"Arguments are {joinedArgs}");
 
             using (Process pProcess = new Process())
             {
@@ -78,16 +81,10 @@ namespace RealitSystem_CLI.Commands
                 int code = pProcess.ExitCode;
 
                 if (code == 1)
-                {
-
-                    Console.WriteLine($"Successfuly generated");
-                    return new RealitReturnCode(ReturnStatus.Success);
-                }
-                else
-                    Console.WriteLine($"Generation failed");
+                    return new RealitReturnCode(ReturnStatus.Success, "Successfuly generated");
             }
 
-            return new RealitReturnCode(ReturnStatus.Failure);
+            return new RealitReturnCode(ReturnStatus.Failure, "Generation failed");
         }
     }
 }

@@ -13,6 +13,20 @@ namespace RealitSystem_CLI.Commands
     [Verb("scene", HelpText = "Setup the scene")]
     internal class SceneCommands : RealitCommand
     {
+        [Option("project-name", Required = false)]
+        public string ProjectName
+        {
+            set
+            {
+                AddModification(() =>
+                {
+                    RealitBuilderData data = RealitBuilder.Instance.Data;
+                    data.ProjectName = value;
+                    data.Dirty = true;
+                });
+            }
+        }
+
         [Option("player-pos", Required = false, HelpText = "Player position on startup")]
         public string PlayerPos 
         {
